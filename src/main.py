@@ -3,6 +3,9 @@ from tkinter import Tk, BOTH, Canvas
 # x=0 is the left side of the screen
 # y=0 is the top of the screen
 
+CELL_SIZE = 40
+CANVAS_PADDING = 20
+
 
 class Point:
     def __init__(self, x=0, y=0):
@@ -47,10 +50,35 @@ class Window:
         line.draw(self.canvas, fill_color)
 
 
+class Cell:
+    def __init__(self, pos, window):
+        self.pos = pos
+        self.walls = {"top": True, "right": True, "bottom": True, "left": True}
+        self._window = window
+
+    def draw(self):
+        x = self.pos.x * CELL_SIZE + CANVAS_PADDING
+        y = self.pos.y * CELL_SIZE + CANVAS_PADDING
+        if self.walls["top"]:
+            self._window.draw_line(Line(Point(x, y), Point(x + CELL_SIZE, y)))
+        if self.walls["right"]:
+            self._window.draw_line(
+                Line(Point(x + CELL_SIZE, y), Point(x + CELL_SIZE, y + CELL_SIZE)))
+        if self.walls["bottom"]:
+            self._window.draw_line(
+                Line(Point(x + CELL_SIZE, y + CELL_SIZE), Point(x, y + CELL_SIZE)))
+        if self.walls["left"]:
+            self._window.draw_line(Line(Point(x, y + CELL_SIZE), Point(x, y)))
+
+
 def main():
     window = Window(800, 600)
-    line = Line(Point(100, 100), Point(200, 200))
-    window.draw_line(line)
+    cell_amount = 20
+    cells = [[Cell(Point(x, y), window) for y in range(cell_amount)]
+             for x in range(cell_amount)]
+    for row in cells:
+        for cell in row:
+            cell.draw()
     window.wait_for_close()
 
 
