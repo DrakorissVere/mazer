@@ -70,6 +70,15 @@ class Cell:
         if self.walls["left"]:
             self._window.draw_line(Line(Point(x, y + CELL_SIZE), Point(x, y)))
 
+    def draw_move(self, to_cell, undo=False):
+        color = "red" if undo else "gray"
+        x = self.pos.x * CELL_SIZE + CANVAS_PADDING
+        y = self.pos.y * CELL_SIZE + CANVAS_PADDING
+        to_x = to_cell.pos.x * CELL_SIZE + CANVAS_PADDING
+        to_y = to_cell.pos.y * CELL_SIZE + CANVAS_PADDING
+        self._window.draw_line(Line(Point(x + CELL_SIZE / 2, y + CELL_SIZE / 2),
+                                    Point(to_x + CELL_SIZE / 2, to_y + CELL_SIZE / 2)), color)
+
 
 def main():
     window = Window(800, 600)
@@ -79,6 +88,9 @@ def main():
     for row in cells:
         for cell in row:
             cell.draw()
+    cells[0][0].draw_move(cells[1][0])
+    cells[1][0].draw_move(cells[1][1])
+    cells[1][1].draw_move(cells[0][1], True)
     window.wait_for_close()
 
 
