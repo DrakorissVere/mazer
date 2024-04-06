@@ -1,4 +1,5 @@
 from tkinter import Tk, BOTH, Canvas
+import time
 
 # x=0 is the left side of the screen
 # y=0 is the top of the screen
@@ -80,17 +81,34 @@ class Cell:
                                     Point(to_x + CELL_SIZE / 2, to_y + CELL_SIZE / 2)), color)
 
 
+class Maze:
+    def __init__(self, x, y, rows, cols, window):
+        self.start = Point(x, y)
+        self.rows = rows
+        self.cols = cols
+        self._window = window
+        self._create_cells()
+
+    def _create_cells(self):
+        self.cells = [[Cell(Point(x, y), self._window) for y in range(self.rows)]
+                      for x in range(self.cols)]
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self._draw_cell(j, i)
+
+    def _draw_cell(self, i, j):
+        self.cells[i][j].draw()
+        self._animate()
+
+    def _animate(self):
+        self._window.redraw()
+        time.sleep(0.01)
+
+
 def main():
     window = Window(800, 600)
     cell_amount = 20
-    cells = [[Cell(Point(x, y), window) for y in range(cell_amount)]
-             for x in range(cell_amount)]
-    for row in cells:
-        for cell in row:
-            cell.draw()
-    cells[0][0].draw_move(cells[1][0])
-    cells[1][0].draw_move(cells[1][1])
-    cells[1][1].draw_move(cells[0][1], True)
+    maze = Maze(0, 0, cell_amount, cell_amount, window)
     window.wait_for_close()
 
 
