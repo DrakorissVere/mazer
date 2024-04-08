@@ -52,12 +52,14 @@ class Window:
 
 
 class Cell:
-    def __init__(self, pos, window):
+    def __init__(self, pos, window=None):
         self.pos = pos
         self.walls = {"top": True, "right": True, "bottom": True, "left": True}
         self._window = window
 
     def draw(self):
+        if not self._window:
+            return
         x = self.pos.x * CELL_SIZE + CANVAS_PADDING
         y = self.pos.y * CELL_SIZE + CANVAS_PADDING
         if self.walls["top"]:
@@ -82,7 +84,7 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, x, y, rows, cols, window):
+    def __init__(self, x, y, rows, cols, window=None):
         self.start = Point(x, y)
         self.rows = rows
         self.cols = cols
@@ -101,6 +103,8 @@ class Maze:
         self._animate()
 
     def _animate(self):
+        if not self._window:
+            return
         self._window.redraw()
         time.sleep(0.01)
 
