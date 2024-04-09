@@ -6,6 +6,8 @@ import time
 
 CELL_SIZE = 40
 CANVAS_PADDING = 20
+BG_COLOR = "#272822"
+WALL_COLOR = "white"
 
 
 class Point:
@@ -30,7 +32,7 @@ class Window:
         self.root = Tk()
         self.root.title("a-mazer")
         self.canvas = Canvas(self.root, width=width,
-                             height=height, bg="#272822")
+                             height=height, bg=BG_COLOR)
         self.canvas.pack(fill=BOTH, expand=1)
         self.is_running = False
         self.root.protocol("WM_DELETE_WINDOW", self.close)
@@ -47,7 +49,7 @@ class Window:
     def close(self):
         self.is_running = False
 
-    def draw_line(self, line, fill_color="white"):
+    def draw_line(self, line, fill_color=WALL_COLOR):
         line.draw(self.canvas, fill_color)
 
 
@@ -64,14 +66,26 @@ class Cell:
         y = self.pos.y * CELL_SIZE + CANVAS_PADDING
         if self.walls["top"]:
             self._window.draw_line(Line(Point(x, y), Point(x + CELL_SIZE, y)))
+        else:
+            self._window.draw_line(
+                Line(Point(x, y), Point(x + CELL_SIZE, y)), BG_COLOR)
         if self.walls["right"]:
             self._window.draw_line(
                 Line(Point(x + CELL_SIZE, y), Point(x + CELL_SIZE, y + CELL_SIZE)))
+        else:
+            self._window.draw_line(
+                Line(Point(x + CELL_SIZE, y), Point(x + CELL_SIZE, y + CELL_SIZE)), BG_COLOR)
         if self.walls["bottom"]:
             self._window.draw_line(
                 Line(Point(x + CELL_SIZE, y + CELL_SIZE), Point(x, y + CELL_SIZE)))
+        else:
+            self._window.draw_line(
+                Line(Point(x + CELL_SIZE, y + CELL_SIZE), Point(x, y + CELL_SIZE)), BG_COLOR)
         if self.walls["left"]:
             self._window.draw_line(Line(Point(x, y + CELL_SIZE), Point(x, y)))
+        else:
+            self._window.draw_line(
+                Line(Point(x, y + CELL_SIZE), Point(x, y)), BG_COLOR)
 
     def draw_move(self, to_cell, undo=False):
         color = "red" if undo else "gray"
@@ -90,6 +104,7 @@ class Maze:
         self.cols = cols
         self._window = window
         self._create_cells()
+        self._break_entrance_and_exit()
 
     def _create_cells(self):
         self.cells = [[Cell(Point(x, y), self._window) for y in range(self.rows)]
@@ -106,7 +121,15 @@ class Maze:
         if not self._window:
             return
         self._window.redraw()
-        time.sleep(0.01)
+        time.sleep(0.001)
+
+    def _break_entrance_and_exit(self):
+        self.cells[0][0].walls["left"] = False
+        self.cells[0][0].walls["top"] = False
+        self._draw_cell(0, 0)
+        self.cells[self.cols - 1][self.rows - 1].walls["right"] = False
+        self.cells[self.cols - 1][self.rows - 1].walls["bottom"] = False
+        self._draw_cell(self.cols - 1, self.rows - 1)
 
 
 def main():
