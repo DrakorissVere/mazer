@@ -1,5 +1,6 @@
 from tkinter import Tk, BOTH, Canvas
 import time
+import random
 
 # x=0 is the left side of the screen
 # y=0 is the top of the screen
@@ -57,6 +58,7 @@ class Cell:
     def __init__(self, pos, window=None):
         self.pos = pos
         self.walls = {"top": True, "right": True, "bottom": True, "left": True}
+        self.visited = False
         self._window = window
 
     def draw(self):
@@ -98,13 +100,17 @@ class Cell:
 
 
 class Maze:
-    def __init__(self, x, y, rows, cols, window=None):
+    def __init__(self, x, y, rows, cols, window=None, seed=None):
         self.start = Point(x, y)
         self.rows = rows
         self.cols = cols
         self._window = window
+        if seed:
+            random.seed(seed)
         self._create_cells()
         self._break_entrance_and_exit()
+        self._break_walls_r(0, 0)
+        self._reset_cells_visited()
 
     def _create_cells(self):
         self.cells = [[Cell(Point(x, y), self._window) for y in range(self.rows)]
@@ -130,6 +136,51 @@ class Maze:
         self.cells[self.cols - 1][self.rows - 1].walls["right"] = False
         self.cells[self.cols - 1][self.rows - 1].walls["bottom"] = False
         self._draw_cell(self.cols - 1, self.rows - 1)
+
+    def _break_walls_r(self, i, j):
+        if i < 0 or i >= self.cols or j < 0 or j >= self.rows:
+            return
+        if self.cells[i][j].visited:
+            return
+        self.cells[i][j].visited = True
+        self._draw_cell(i, j)
+        neighbors = self._get_neighbors(i, j)
+        random.shuffle(neighbors)
+        for neighbor in neighbors:
+            if not self.cells[neighbor[0]][neighbor[1]].visited:
+                if neighbor[0] == i + 1:
+                    self.cells[i][j].walls["right"] = False
+                    self.cells[neighbor[0]][neighbor[1]].walls["left"] = False
+                elif neighbor[0] == i - 1:
+                    self.cells[i][j].walls["left"] = False
+                    self.cells[neighbor[0]][neighbor[1]].walls["right"] = False
+                elif neighbor[1] == j + 1:
+                    self.cells[i][j].walls["bottom"] = False
+                    self.cells[neighbor[0]][neighbor[1]].walls["top"] = False
+                elif neighbor[1] == j - 1:
+                    self.cells[i][j].walls["top"] = False
+                    self.cells[neighbor[0]][neighbor[1]
+                                            ].walls["bottom"] = False
+                self._draw_cell(i, j)
+                self._draw_cell(neighbor[0], neighbor[1])
+                self._break_walls_r(neighbor[0], neighbor[1])
+
+    def _get_neighbors(self, i, j):
+        neighbors = []
+        if i > 0:
+            neighbors.append((i - 1, j))
+        if i < self.cols - 1:
+            neighbors.append((i + 1, j))
+        if j > 0:
+            neighbors.append((i, j - 1))
+        if j < self.rows - 1:
+            neighbors.append((i, j + 1))
+        return neighbors
+
+    def _reset_cells_visited(self):
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self.cells[i][j].visited = False
 
 
 def main():
