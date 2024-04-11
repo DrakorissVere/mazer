@@ -90,7 +90,7 @@ class Cell:
                 Line(Point(x, y + CELL_SIZE), Point(x, y)), BG_COLOR)
 
     def draw_move(self, to_cell, undo=False):
-        color = "red" if undo else "gray"
+        color = "black" if undo else "red"
         x = self.pos.x * CELL_SIZE + CANVAS_PADDING
         y = self.pos.y * CELL_SIZE + CANVAS_PADDING
         to_x = to_cell.pos.x * CELL_SIZE + CANVAS_PADDING
@@ -182,11 +182,48 @@ class Maze:
             for j in range(self.cols):
                 self.cells[i][j].visited = False
 
+    def _solve_r(self, i, j):
+        self._animate()
+        self.cells[i][j].visited = True
+        if i == self.cols - 1 and j == self.rows - 1:
+            return True
+        # for each direction, if there is a cell and no wall blocking the way,
+        # and cell hasn't been visited:
+        # 1. draw a move between the current cell and that cell
+        # 2. call _solve_r recursively to move to that cell. If that cell returns
+        # True, just return True and don't worry about the other directions
+        # 3. Otherwise, dran an "undo" move between the current cell and the next cell
+        if i > 0 and not self.cells[i][j].walls["left"] and not self.cells[i - 1][j].visited:
+            self.cells[i][j].draw_move(self.cells[i - 1][j])
+            if self._solve_r(i - 1, j):
+                return True
+            self.cells[i][j].draw_move(self.cells[i - 1][j], True)
+        if i < self.cols - 1 and not self.cells[i][j].walls["right"] and not self.cells[i + 1][j].visited:
+            self.cells[i][j].draw_move(self.cells[i + 1][j])
+            if self._solve_r(i + 1, j):
+                return True
+            self.cells[i][j].draw_move(self.cells[i + 1][j], True)
+        if j > 0 and not self.cells[i][j].walls["top"] and not self.cells[i][j - 1].visited:
+            self.cells[i][j].draw_move(self.cells[i][j - 1])
+            if self._solve_r(i, j - 1):
+                return True
+            self.cells[i][j].draw_move(self.cells[i][j - 1], True)
+        if j < self.rows - 1 and not self.cells[i][j].walls["bottom"] and not self.cells[i][j + 1].visited:
+            self.cells[i][j].draw_move(self.cells[i][j + 1])
+            if self._solve_r(i, j + 1):
+                return True
+            self.cells[i][j].draw_move(self.cells[i][j + 1], True)
+        return False
+
+    def solve(self):
+        return self._solve_r(0, 0)
+
 
 def main():
     window = Window(800, 600)
     cell_amount = 20
     maze = Maze(0, 0, cell_amount, cell_amount, window)
+    maze.solve()
     window.wait_for_close()
 
 
